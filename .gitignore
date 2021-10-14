@@ -1,0 +1,9 @@
+properties.ini
+jupytext.txt
+.idea
+.vscode
+.ipynb_checkpoints
+__pycache__
+data/
+database_conn.py
+mongo_atlas.ipynb
