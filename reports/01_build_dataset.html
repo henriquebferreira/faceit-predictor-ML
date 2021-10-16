@@ -7,7 +7,6 @@
 
 
 
-
 <style type="text/css">
     pre { line-height: 125%; margin: 0; }
 td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
@@ -29,13 +28,15 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .highlight .cs { color: var(--jp-mirror-editor-comment-color); font-style: italic } /* Comment.Special */
 .highlight .kc { color: var(--jp-mirror-editor-keyword-color); font-weight: bold } /* Keyword.Constant */
 .highlight .kd { color: var(--jp-mirror-editor-keyword-color); font-weight: bold } /* Keyword.Declaration */
+.highlight .nf { color: var(--jp-mirror-editor-function-color); font-weight: bold } /* Keyword.Declaration */
+.highlight .nb { color: var(--jp-mirror-editor-builtin-color); font-weight: bold } /* Keyword.Declaration */
 .highlight .kn { color: var(--jp-mirror-editor-keyword-color); font-weight: bold } /* Keyword.Namespace */
 .highlight .kp { color: var(--jp-mirror-editor-keyword-color); font-weight: bold } /* Keyword.Pseudo */
 .highlight .kr { color: var(--jp-mirror-editor-keyword-color); font-weight: bold } /* Keyword.Reserved */
 .highlight .kt { color: var(--jp-mirror-editor-keyword-color); font-weight: bold } /* Keyword.Type */
 .highlight .m { color: var(--jp-mirror-editor-number-color) } /* Literal.Number */
 .highlight .s { color: var(--jp-mirror-editor-string-color) } /* Literal.String */
-.highlight .ow { color: var(--jp-mirror-editor-operator-color); font-weight: bold } /* Operator.Word */
+.highlight .ow { color: var(--jp-mirror-editor-keyword-color); font-weight: bold } /* Operator.Word */
 .highlight .w { color: var(--jp-mirror-editor-variable-color) } /* Text.Whitespace */
 .highlight .mb { color: var(--jp-mirror-editor-number-color) } /* Literal.Number.Bin */
 .highlight .mf { color: var(--jp-mirror-editor-number-color) } /* Literal.Number.Float */
@@ -13963,15 +13964,13 @@ all of MD as it is not optimized for dense, information rich UIs.
 
   /* Defaults use Material Design specification */
   --jp-content-font-color0: rgba(0, 0, 0, 1);
-  --jp-content-font-color1: rgba(0, 0, 0, 0.87);
+  --jp-content-font-color1: white;
   --jp-content-font-color2: rgba(0, 0, 0, 0.54);
   --jp-content-font-color3: rgba(0, 0, 0, 0.38);
 
   --jp-content-link-color: var(--md-blue-700);
 
-  --jp-content-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol';
+  --jp-content-font-family: Play;
 
   /*
    * Code Fonts
@@ -13999,9 +13998,9 @@ all of MD as it is not optimized for dense, information rich UIs.
    * theme these would go from light to dark.
    */
 
-  --jp-layout-color0: white;
+  --jp-layout-color0: #1F1F1F;
   --jp-layout-color1: white;
-  --jp-layout-color2: var(--md-grey-200);
+  --jp-layout-color2: transparent;
   --jp-layout-color3: var(--md-grey-400);
   --jp-layout-color4: var(--md-grey-600);
 
@@ -14060,8 +14059,8 @@ all of MD as it is not optimized for dense, information rich UIs.
   --jp-cell-collapser-min-height: 20px;
   --jp-cell-collapser-not-active-hover-opacity: 0.6;
 
-  --jp-cell-editor-background: var(--md-grey-100);
-  --jp-cell-editor-border-color: var(--md-grey-300);
+  --jp-cell-editor-background: #181818;
+  --jp-cell-editor-border-color: #999B9D;
   --jp-cell-editor-box-shadow: inset 0 0 2px var(--md-blue-300);
   --jp-cell-editor-active-background: var(--jp-layout-color0);
   --jp-cell-editor-active-border-color: var(--jp-brand-color1);
@@ -14071,7 +14070,7 @@ all of MD as it is not optimized for dense, information rich UIs.
   --jp-cell-prompt-letter-spacing: 0px;
   --jp-cell-prompt-opacity: 1;
   --jp-cell-prompt-not-active-opacity: 0.5;
-  --jp-cell-prompt-not-active-font-color: var(--md-grey-700);
+  --jp-cell-prompt-not-active-font-color: #999B9D;
   /* A custom blend of MD grey and blue 600
    * See https://meyerweb.com/eric/tools/color-blend/#546E7A:1E88E5:5:hex */
   --jp-cell-inprompt-font-color: #307fc1;
@@ -14137,22 +14136,24 @@ all of MD as it is not optimized for dense, information rich UIs.
 
   /* Code mirror specific styles */
 
-  --jp-mirror-editor-keyword-color: #008000;
+  --jp-mirror-editor-keyword-color: #C586C0;
+  --jp-mirror-editor-function-color: #DCDCAA;
+  --jp-mirror-editor-control-flow-color: #C586C0;
   --jp-mirror-editor-atom-color: #88f;
-  --jp-mirror-editor-number-color: #080;
+  --jp-mirror-editor-number-color: #B5CEA8;
   --jp-mirror-editor-def-color: #00f;
-  --jp-mirror-editor-variable-color: var(--md-grey-900);
+  --jp-mirror-editor-variable-color: white;
   --jp-mirror-editor-variable-2-color: #05a;
   --jp-mirror-editor-variable-3-color: #085;
-  --jp-mirror-editor-punctuation-color: #05a;
+  --jp-mirror-editor-punctuation-color: #999B9D;
   --jp-mirror-editor-property-color: #05a;
-  --jp-mirror-editor-operator-color: #aa22ff;
-  --jp-mirror-editor-comment-color: #408080;
-  --jp-mirror-editor-string-color: #ba2121;
+  --jp-mirror-editor-operator-color: #999B9D;
+  --jp-mirror-editor-comment-color: #6A9955;
+  --jp-mirror-editor-string-color: #CE9178;
   --jp-mirror-editor-string-2-color: #708;
   --jp-mirror-editor-meta-color: #aa22ff;
   --jp-mirror-editor-qualifier-color: #555;
-  --jp-mirror-editor-builtin-color: #008000;
+  --jp-mirror-editor-builtin-color: #4EC9B0;
   --jp-mirror-editor-bracket-color: #997;
   --jp-mirror-editor-tag-color: #170;
   --jp-mirror-editor-attribute-color: #00c;
@@ -14260,7 +14261,7 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <div style="text-align:center; display:flex; justify-content:center; margin:16px 0px">
-    <span style="color:#ff5500; font-family:Play; font-size:3em; margin:auto 32px">Part I<br \>Build dataset</span>
+    <span style="color:#ff5500; font-size:3em; margin:auto 32px">Part I<br \>Build dataset</span>
 </div><hr>
 
 </div>
@@ -14269,7 +14270,7 @@ a.anchor-link {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>This document is a part of the FACEIT Predictor Data Science Workflow.</p>
 <p>In this notebook the collected data (stored in the local MongoDB database) is preprocessed and new fields/collections are stored directly in the same Database. Therefore, those steps are only executed once and the feature engineering phase is much faster.</p>
-
+<a href='02_feature_engineering.html'>Part II</a>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
