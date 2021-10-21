@@ -1,307 +1,462 @@
 from statistics import mean
 
 import joblib
+import json
+from pymongo import MongoClient
+from collections import defaultdict
+from src.db.config import read_config
+from src.features.utils import get_team_rounds, get_player_won_the_match, add_feature
 
-from features.utils import get_team_rounds
+# rating_predictor = joblib.load(
+#     './model_rating_predictor_2020_03_05_07_23_44_731552.pkl')
 
-rating_predictor = joblib.load('./model_rating_predictor_2020_03_05_07_23_44_731552.pkl')
+# Load performance statistics that were previously computed
+with open('../data/external/performance_statistics.json') as fp:
+    performance_statistics = json.load(fp)
 
-def has_won_the_match(match, player_id):
-    players_team_A = [player['id'] for player in match['teamA']]
-    is_on_teamA = True if player_id in players_team_A else False
+AVERAGE_KPR = performance_statistics["meanKPR"]
+AVERAGE_SPR = performance_statistics["meanSPR"]
+AVERAGE_RMK = performance_statistics["meanMKPR"]
+AVERAGE_APR = performance_statistics["meanAPR"]
+AVERAGE_MVPPR = performance_statistics["meanMVPPR"]
 
-    team_rounds = get_team_rounds(match['score'])
-    return get_won_the_match(is_on_teamA, team_rounds)
+db_cfg = read_config("local.ingestorDB")
+client = MongoClient(**db_cfg)
+db = client['faceit_imported']
+# Connect to the collections inside the local ingestor database
+players_coll = db['player']
+matches_coll = db['match']
+lifetime_stats_coll = db['player_lifetime_stats']
 
 
-def get_won_the_match(is_on_teamA, team_rounds):
-    if is_on_teamA and team_rounds[0] > team_rounds[1]:
-        won_the_match = True
-    elif not is_on_teamA and team_rounds[1] > team_rounds[0]:
-        won_the_match = True
-    else:
-        won_the_match = False
-    return won_the_match
+def get_all_previous_matches(match):
+    previous_matches_ids = set()
+
+    for team in (match["teamA"], match["teamB"]):
+        for player in team:
+            previous_matches_ids = previous_matches_ids.union(
+                player["previousMatches"])
+
+    previous_matches_cursor = matches_coll.find(
+        {"_id": {"$in": list(previous_matches_ids)}})
+    return {m["_id"]: m for m in previous_matches_cursor}
 
 
 def get_mean_matches_on_map_prev(match, team, **kwargs):
-    matches_on_map_ratio = []
+    num_matches_same_map = 0
 
+    previous_matches = kwargs['previous_matches']
     map_played = match['mapPlayed']
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
 
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        same_map_series = player_prev_matches[player_prev_matches['mapPlayed'] == map_played]
-        num_matches_same_map = same_map_series.shape[0]
-        matches_on_map_ratio.append(num_matches_same_map)
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-        matches_on_map_ratio.append(num_matches_same_map)
+        num_matches_same_map += len(
+            [m for m in player_prev_matches if m['mapPlayed'] == map_played])
 
-    return mean(matches_on_map_ratio)
+    return num_matches_same_map / 5
 
 
 def get_mean_winrate_prev(match, team, **kwargs):
-    players_winrate = []
+    winrates = 0
 
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
+    previous_matches = kwargs['previous_matches']
 
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        won_matches = player_prev_matches.apply(lambda m: has_won_the_match(m, player_id), axis=1)
-        num_won_matches = won_matches[won_matches == True].shape[0]
-        players_winrate.append(num_won_matches / 10)
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-    return mean(players_winrate)
+        num_won_prev_matches = sum([get_player_won_the_match(
+            m, player["id"]) for m in player_prev_matches])
+        num_prev_matches = len(player_prev_matches)
+        winrates += num_won_prev_matches / \
+            num_prev_matches if num_prev_matches != 0 else 0.5
 
-
-def compute_multikills_score(row, player_id):
-    player = [player for team in row['teams'] for player in team if player['id'] == player_id][0]
-    if 'playerStats' in player:
-        player_stats = player['playerStats']
-    else:
-        return 0
-    multi_kills_score = player_stats['tripleKills'] * 9 + player_stats['quadraKills'] * 16 + player_stats[
-        'pentaKills'] * 25
-    return multi_kills_score
-
-
-def get_multikills_score_prev(match, team, **kwargs):
-    # Multi kills weights: 3K : 9, 4K: 16, 5k: 25
-    all_multi_kills = []
-
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
-
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        multi_kills_score = player_prev_matches.apply(compute_multikills_score, player_id=player_id, axis=1)
-        all_multi_kills.append(mean(multi_kills_score))
-
-    return mean(all_multi_kills)
-
-
-def compute_assists(row, player_id):
-    player = [player for team in row['teams'] for player in team if player['id'] == player_id][0]
-    if 'playerStats' in player:
-        player_stats = player['playerStats']
-    else:
-        return 0
-    return player_stats['assists']
-
-
-def get_mean_assists_prev(match, team, **kwargs):
-    all_assists = []
-
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
-
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        player_assists = player_prev_matches.apply(compute_assists, player_id=player_id, axis=1)
-        all_assists.append(mean(player_assists))
-
-    return mean(all_assists)
-
-
-def compute_kd(row, player_id):
-    player = [player for team in row['teams'] for player in team if player['id'] == player_id][0]
-    if 'playerStats' in player:
-        player_stats = player['playerStats']
-    else:
-        return 0
-    kills = player_stats['kills']
-    deaths = player_stats['deaths']
-    if deaths == 0:
-        deaths += 1
-    kd = kills / deaths
-    return kd
+    return winrates / 5
 
 
 def get_mean_kd_prev(match, team, **kwargs):
-    all_kds = []
+    kds = 0
 
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
+    previous_matches = kwargs['previous_matches']
 
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        player_kds = player_prev_matches.apply(compute_kd, player_id=player_id, axis=1)
-        all_kds.append(mean(player_kds))
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-    return mean(all_kds)
+        player_id = player["id"]
+        prev_match_kds = []
+        for prev_match in player_prev_matches:
+            player_prev = [p for team in prev_match['teams']
+                           for p in team if p['id'] == player_id][0]
+            if 'playerStats' not in player_prev:
+                prev_match_kds.append(1)
+                continue
+            player_stats = player_prev['playerStats']
+            kills = player_stats['kills']
+            deaths = player_stats['deaths']
+            kd_ratio = (kills / deaths) if deaths != 0 else kills
+            prev_match_kds.append(kd_ratio)
+        kds += sum(prev_match_kds) / \
+            len(prev_match_kds) if prev_match_kds else 1
 
-
-def get_num_rounds(match):
-    score_string = match['score'].split("/")
-    num_rounds = sum(map(lambda r: int(r), score_string))
-    return num_rounds
-
-
-def compute_rating(match, player_id):
-    player = [player for team in match['teams'] for player in team if player['id'] == player_id][0]
-    if 'playerStats' in player:
-        player_stats = player['playerStats']
-    else:
-        return 0
-    AVERAGE_KPR = 0.679  # average kills per round
-    AVERAGE_SPR = 0.317  # average survived rounds per round
-    AVERAGE_RMK = 1.277  # average value calculated from rounds with multiple kills
-
-    AVERAGE_APR = 1 #
-    AVERAGE_MPR = 1 #
-    num_rounds = get_num_rounds(match)
-    kills = player_stats['kills']
-    deaths = player_stats['deaths']
-    triple_kills = player_stats['tripleKills']
-    quadra_kills = player_stats['quadraKills']
-    penta_kills = player_stats['pentaKills']
-    non_multi_kills = kills - triple_kills * 3 - quadra_kills * 4 - penta_kills * 5
-
-    kill_rating = (kills / num_rounds) / AVERAGE_KPR
-    survival_rating = ((num_rounds - deaths) / num_rounds) / AVERAGE_SPR
-    multi_kills_rating = ((non_multi_kills * 2 +
-                           triple_kills * 9 +
-                           quadra_kills * 16 +
-                           penta_kills * 25) / num_rounds) / AVERAGE_RMK
-
-    return (kill_rating + 0.7 * survival_rating + multi_kills_rating) / 2.7
+    return kds / 5
 
 
-def compute_delta_rating(match, player_id):
-    player_rating = compute_rating(match, player_id)
-    players_team_A = [player['id'] for player in match['teamA']]
-    is_on_team_A = player_id in players_team_A
+def get_mean_weighted_kd_by_elo_prev(match, team, **kwargs):
+    kds = 0
 
-    team_rounds = get_team_rounds(match['score'])
-    if is_on_team_A:
-        dif_rounds = team_rounds[0] - team_rounds[1]
-        opposing_team_elos = [player['elo'] for player in match['teamB']]
-        player_elo = next(player['elo'] for player in match['teamA'] if player['id'] == player_id)
-        dif_elo = player_elo - mean(opposing_team_elos)
-    else:
-        dif_rounds = team_rounds[1] - team_rounds[0]
-        opposing_team_elos = [player['elo'] for player in match['teamA']]
-        player_elo = next(player['elo'] for player in match['teamB'] if player['id'] == player_id)
-        dif_elo = player_elo - mean(opposing_team_elos)
+    previous_matches = kwargs['previous_matches']
 
-    to_predict = [dif_elo, dif_rounds]
-    predicted_rating = rating_predictor.predict([to_predict])
-    return player_rating - predicted_rating[0]
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
+
+        player_id = player["id"]
+        player_elo = player["elo"]
+        prev_match_kds = []
+        for prev_match in player_prev_matches:
+            player_prev = [p for team in prev_match['teams']
+                           for p in team if p['id'] == player_id][0]
+            if 'playerStats' not in player_prev:
+                prev_match_kds.append(1)
+                continue
+            player_stats = player_prev['playerStats']
+            kills = player_stats['kills']
+            deaths = player_stats['deaths']
+            kd_ratio = (kills / deaths) if deaths != 0 else kills
+            prev_match_kds.append(kd_ratio)
+        kds += sum(prev_match_kds) * player_elo / \
+            len(prev_match_kds) if prev_match_kds else 1
+
+    return kds / 5
+
+
+def get_multikills_score_prev(match, team, **kwargs):
+    all_multikills = 0
+
+    previous_matches = kwargs['previous_matches']
+
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
+
+        player_id = player["id"]
+        prev_match_multikills = []
+        for prev_match in player_prev_matches:
+            player_prev = [player for team in prev_match['teams']
+                           for player in team if player['id'] == player_id][0]
+            if 'playerStats' not in player_prev:
+                prev_match_multikills.append(AVERAGE_RMK)
+                continue
+            player_stats = player_prev['playerStats']
+            triple_k = player_stats['tripleKills']
+            quadra_k = player_stats['quadraKills']
+            penta_k = player_stats['pentaKills']
+
+            rounds = sum(get_team_rounds(prev_match['score']))
+            multikills_score = (triple_k * 9 + quadra_k * 16 +
+                                penta_k * 25) / rounds if rounds else AVERAGE_RMK
+            prev_match_multikills.append(multikills_score)
+        all_multikills += sum(prev_match_multikills) / len(
+            prev_match_multikills) if prev_match_multikills else AVERAGE_RMK
+
+    return all_multikills / 5
 
 
 def get_mean_rating_prev(match, team, **kwargs):
-    all_ratings = []
+    all_ratings = 0
 
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
+    previous_matches = kwargs['previous_matches']
 
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        player_ratings = player_prev_matches.apply(compute_rating, player_id=player_id, axis=1)
-        all_ratings.append(mean(player_ratings))
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-    return mean(all_ratings)
+        player_id = player["id"]
+        prev_match_ratings = []
+        for prev_match in player_prev_matches:
+            player_prev = [player for team in prev_match['teams']
+                           for player in team if player['id'] == player_id][0]
+            if 'playerStats' not in player_prev:
+                prev_match_ratings.append(1)
+                continue
+            player_stats = player_prev['playerStats']
+            kills = player_stats['kills']
+            deaths = player_stats['deaths']
+            triple_k = player_stats['tripleKills']
+            quadra_k = player_stats['quadraKills']
+            penta_k = player_stats['pentaKills']
+            assists = player_stats['assists']
+            mvps = player_stats['mvps']
+            rounds = sum(get_team_rounds(prev_match['score']))
 
+            kill_rating = kills / rounds / AVERAGE_KPR
+            survival_rating = (rounds - deaths) / rounds / AVERAGE_SPR
+            multi_kills_score = triple_k * 9 + quadra_k * 16 + penta_k * 25
+            multi_kills_rating = multi_kills_score / rounds / AVERAGE_RMK
+            assists_rating = assists / rounds / AVERAGE_APR
+            mvps_rating = mvps / rounds / AVERAGE_MVPPR
+            prev_match_ratings.append((kill_rating + 0.7 * survival_rating
+                                       + multi_kills_rating + 0.5 * assists_rating
+                                       + 0.3 * mvps_rating) / 3.5)
+        all_ratings += sum(prev_match_ratings) / \
+            len(prev_match_ratings) if prev_match_ratings else 1
 
-def get_mean_delta_rating_prev(match, team, **kwargs):
-    all_delta_ratings = []
-
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
-
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        player_delta_ratings = player_prev_matches.apply(compute_delta_rating, player_id=player_id, axis=1)
-        all_delta_ratings.append(mean(player_delta_ratings))
-
-    return mean(all_delta_ratings)
-
-
-def compute_interval_time(row, start_time):
-    return row['startTime'] - start_time
+    return all_ratings / 5
 
 
 def get_mean_interval_time_prev(match, team, **kwargs):
-    all_intervals_time = []
+    interval_time_prev = 0
 
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
+    previous_matches = kwargs['previous_matches']
     start_time = match['startTime']
 
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        player_intervals_time = player_prev_matches.apply(compute_interval_time, start_time=start_time, axis=1)
-        all_intervals_time.append(mean(player_intervals_time))
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-    return mean(all_intervals_time)
+        player_intervals = [start_time - prev_match['startTime']
+                            for prev_match in player_prev_matches]
+        interval_time_prev += sum(player_intervals) / \
+            len(player_intervals) if player_intervals else 0
+
+    return interval_time_prev / 5
 
 
-def get_max_interval_time_prev(match, team, **kwargs):
-    all_intervals_time = []
+def get_mean_interval_time_oldest_prev(match, team, **kwargs):
+    interval_time_prev = 0
 
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
+    previous_matches = kwargs['previous_matches']
     start_time = match['startTime']
 
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        player_intervals_time = player_prev_matches.apply(compute_interval_time, start_time=start_time, axis=1)
-        all_intervals_time.append(max(player_intervals_time))
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-    return mean(all_intervals_time)
+        player_intervals = [start_time - prev_match['startTime']
+                            for prev_match in player_prev_matches]
+        interval_time_prev += max(player_intervals) if player_intervals else 0
+
+    return interval_time_prev / 5
 
 
-def compute_diff_to_mean_elo(row, player_id):
-    elo = [player for team in row['teams'] for player in team if player['id'] == player_id][0]['elo']
-    return elo
+def get_mean_interval_time_most_recent_prev(match, team, **kwargs):
+    interval_time_prev = 0
+
+    previous_matches = kwargs['previous_matches']
+    start_time = match['startTime']
+
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
+
+        player_intervals = [start_time - prev_match['startTime']
+                            for prev_match in player_prev_matches]
+        interval_time_prev += min(player_intervals) if player_intervals else 0
+
+    return interval_time_prev / 5
+
+
+def get_max_interval_time_most_recent_prev(match, team, **kwargs):
+    interval_time_prev = []
+
+    previous_matches = kwargs['previous_matches']
+    start_time = match['startTime']
+
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
+
+        player_intervals = [start_time - prev_match['startTime']
+                            for prev_match in player_prev_matches]
+        most_recent = min(player_intervals) if player_intervals else 0
+        interval_time_prev.append(most_recent)
+
+    return max(interval_time_prev) if interval_time_prev else 0
 
 
 def get_mean_delta_elo_prev(match, team, **kwargs):
-    all_elo_diff = []
+    delta_elos = 0
 
-    team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
+    previous_matches = kwargs['previous_matches']
 
-    for player_id in team_players_ids:
-        current_elo = [player for team in match['teams'] for player in team if player['id'] == player_id][0]['elo']
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        player_elos = player_prev_matches.apply(compute_diff_to_mean_elo, player_id=player_id, axis=1)
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-        mean_elo = mean(player_elos)
-        all_elo_diff.append(current_elo - mean_elo)
+        player_id = player["id"]
+        player_elo = player["elo"]
+        prev_delta_elos = []
+        for prev_match in player_prev_matches:
+            player_prev_elo = [p for team in prev_match['teams']
+                               for p in team if p['id'] == player_id][0]["elo"]
+            prev_delta_elos.append(player_elo - player_prev_elo)
+        delta_elos += sum(prev_delta_elos) / \
+            len(prev_delta_elos) if prev_delta_elos else 0
 
-    return mean(all_elo_diff)
+    return delta_elos / 5
+
+
+def get_mean_dif_rounds_prev(match, team, **kwargs):
+    dif_rounds = 0
+
+    previous_matches = kwargs['previous_matches']
+
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
+
+        player_id = player["id"]
+        prev_dif_rounds = []
+        for prev_match in player_prev_matches:
+            is_on_team_A = any(
+                [player['id'] == player_id for p in prev_match['teamA']])
+            team_rounds = get_team_rounds(prev_match['score'])
+            dif_team_rounds = team_rounds[0] - \
+                team_rounds[1] if is_on_team_A else team_rounds[1] - \
+                team_rounds[0]
+            prev_dif_rounds.append(dif_team_rounds)
+
+        dif_rounds += sum(prev_dif_rounds) / \
+            len(prev_dif_rounds) if prev_dif_rounds else 0
+
+    return dif_rounds / 5
+
+
+def get_mean_dif_elo_prev(match, team, **kwargs):
+    dif_elo = 0
+
+    previous_matches = kwargs['previous_matches']
+
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
+
+        player_id = player["id"]
+        player_dif_elo = []
+        for prev_match in player_prev_matches:
+            is_on_team_A = any(
+                [player['id'] == player_id for p in prev_match['teamA']])
+            player_elo = [player for team in prev_match['teams']
+                          for player in team if player['id'] == player_id][0]['elo']
+            if is_on_team_A:
+                elos_opposing_team = [player['elo']
+                                      for player in prev_match['teamB']]
+            else:
+                elos_opposing_team = [player['elo']
+                                      for player in prev_match['teamA']]
+
+            mean_elo_opposing_team = sum(
+                elos_opposing_team) / len(elos_opposing_team)
+            player_dif_elo.append(player_elo - mean_elo_opposing_team)
+        dif_elo += sum(player_dif_elo) / \
+            len(player_dif_elo) if player_dif_elo else 0
+
+    return dif_elo / 5
+
+
+def get_mean_matches_afk(match, team, **kwargs):
+    afks = 0
+
+    previous_matches = kwargs['previous_matches']
+
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
+
+        player_id = player["id"]
+        prev_match_afks = 0
+        for prev_match in player_prev_matches:
+            player_prev = [player for team in prev_match['teams']
+                           for player in team if player['id'] == player_id][0]
+            if not 'playerStats' in player_prev:
+                prev_match_afks += 1
+
+        afks += prev_match_afks / \
+            len(player_prev_matches) if player_prev_matches else 0
+
+    return afks / 5
 
 
 def get_num_played_togthr_prev(match, team, **kwargs):
-    all_matches = []
-    played_together = 0
+    all_played_together = 0
+
+    previous_matches = kwargs['previous_matches']
     team_players_ids = [p['id'] for p in match[team]]
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
 
-    for player_id in team_players_ids:
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        all_matches.extend(player_prev_matches['_id'].values)
+    players_in_match = defaultdict(list)
+    for player in match[team]:
+        for prev_match_id in player["previousMatches"]:
+            players_in_match[prev_match_id].append(player["id"])
 
-    my_dict = {i: all_matches.count(i) for i in all_matches}
-    my_dict = {k: v for k, v in my_dict.items() if v > 1}
-    for k, v in my_dict.items():
-        played_together += v
-    return played_together
+    # for all previous that have two or more common: check if all in the same team
+    for match_id, player_ids in players_in_match.items():
+        if len(player_ids) > 1:
+            prev_match = previous_matches[match_id]
+
+            players_ids_A = [p['id'] for p in prev_match["teamA"]]
+            players_ids_B = [p['id'] for p in prev_match["teamB"]]
+            players_on_A = [p for p in player_ids if p in players_ids_A]
+            players_on_B = [p for p in player_ids if p in players_ids_B]
+            if len(players_on_A) > 1:
+                all_played_together += len(players_on_A)
+            if len(players_on_B) > 1:
+                all_played_together += len(players_on_B)
+
+    num_matches = sum([len(p) for p in players_in_match.values()])
+    return all_played_together / num_matches
+
+
+def get_winrate_togthr_prev(match, team, **kwargs):
+    wins_together, num_matches_together = 0, 0
+
+    previous_matches = kwargs['previous_matches']
+    team_players_ids = [p['id'] for p in match[team]]
+
+    players_in_match = defaultdict(list)
+    for player in match[team]:
+        for prev_match_id in player["previousMatches"]:
+            players_in_match[prev_match_id].append(player["id"])
+
+    # for all previous that have two or more common: check if all in the same team
+    for match_id, player_ids in players_in_match.items():
+        if len(player_ids) > 1:
+            prev_match = previous_matches[match_id]
+
+            players_ids_A = [p['id'] for p in prev_match["teamA"]]
+            players_ids_B = [p['id'] for p in prev_match["teamB"]]
+            players_on_A = [p for p in player_ids if p in players_ids_A]
+            players_on_B = [p for p in player_ids if p in players_ids_B]
+            if len(players_on_A) > 1:
+                won_match = get_player_won_the_match(
+                    prev_match, players_on_A[0])
+                won_multiplier = 1 if won_match == 1 else -1
+                wins_together += won_multiplier * len(players_on_A)
+                num_matches_together += len(players_on_A)
+            if len(players_on_B) > 1:
+                won_match = get_player_won_the_match(
+                    prev_match, players_on_B[0])
+                won_multiplier = 1 if won_match == 1 else -1
+                wins_together += won_multiplier * len(players_on_B)
+                num_matches_together += len(players_on_B)
+
+    return wins_together / num_matches_together if num_matches_together else 0
 
 
 # 7 hours
@@ -309,61 +464,107 @@ on_day_time = 7 * 3600
 
 
 def get_mean_first_matches_on_day(match, team, **kwargs):
-    first_matches = []
+    most_recent_matches_intervals = []
 
-    team_players_ids = [p['id'] for p in match[team]]
+    previous_matches = kwargs['previous_matches']
     start_time = match['startTime']
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
 
-    for player_id in team_players_ids:
-        is_first_match = 1
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        for _, row in player_prev_matches.iterrows():
-            interval_time = start_time - row['startTime']
-            if interval_time <= on_day_time:
-                is_first_match = 0
-        first_matches.append(is_first_match)
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-    return mean(first_matches)
+        most_recent = min([start_time - prev_match['startTime']
+                           for prev_match in player_prev_matches])
+        most_recent_matches_intervals.append(most_recent)
+
+    # if most recent match was played more than 7 hours ago then mark as the first match of the day
+    return len([i for i in most_recent_matches_intervals if i > on_day_time])
 
 
 def get_mean_matches_on_day(match, team, **kwargs):
-    matches_today = []
+    num_matches_on_day = 0
 
-    team_players_ids = [p['id'] for p in match[team]]
+    previous_matches = kwargs['previous_matches']
     start_time = match['startTime']
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
 
-    for player_id in team_players_ids:
-        player_matches_today = 0
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        for _, row in player_prev_matches.iterrows():
-            interval_time = start_time - row['startTime']
-            if interval_time <= on_day_time:
-                player_matches_today += 1
-        matches_today.append(player_matches_today)
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-    return mean(matches_today)
+        intervals = [start_time - prev_match['startTime']
+                     for prev_match in player_prev_matches]
+        num_matches_on_day += len([i for i in intervals if i < on_day_time])
+
+    return num_matches_on_day / 5
 
 
 def get_mean_played_map_on_day(match, team, **kwargs):
-    matches_on_map_today = []
+    num_matches_on_day = 0
 
-    team_players_ids = [p['id'] for p in match[team]]
+    previous_matches = kwargs['previous_matches']
     start_time = match['startTime']
     map_played = match['mapPlayed']
-    previous_matches = kwargs['prevs']
-    p2m = kwargs['p2m']
 
-    for player_id in team_players_ids:
-        played_map_today = 0
-        player_prev_matches = previous_matches[previous_matches['_id'].isin(p2m[player_id])]
-        for _, row in player_prev_matches.iterrows():
-            interval_time = start_time - row['startTime']
-            if (interval_time <= on_day_time) and (row['mapPlayed'] == map_played):
-                played_map_today = 1
-        matches_on_map_today.append(played_map_today)
+    for player in match[team]:
+        player_prev_matches_ids = player["previousMatches"]
+        player_prev_matches = [m for match_id, m in previous_matches.items(
+        ) if match_id in player_prev_matches_ids]
 
-    return mean(matches_on_map_today)
+        intervals = [start_time - prev_match['startTime']
+                     for prev_match in player_prev_matches if prev_match['mapPlayed'] == map_played]
+        num_matches_on_day += len([i for i in intervals if i < on_day_time])
+
+    return num_matches_on_day / 5
+
+
+def add_previous_matches_features(match):
+    previous_matches = get_all_previous_matches(match)
+
+    add_feature(match, get_mean_matches_on_map_prev,
+                previous_matches=previous_matches)
+    add_feature(match, get_mean_winrate_prev,
+                previous_matches=previous_matches)
+    add_feature(match, get_mean_kd_prev,  previous_matches=previous_matches)
+    add_feature(match, get_mean_weighted_kd_by_elo_prev,
+                previous_matches=previous_matches)
+
+    add_feature(match, get_multikills_score_prev,
+                previous_matches=previous_matches)
+    add_feature(match, get_mean_rating_prev, previous_matches=previous_matches)
+
+    # # add_feature(match, get_mean_delta_rounds_predictor_prev,  previous_matches=previous_matches)
+    # # ##    add_feature(match, get_mean_delta_rating_prev, prevs = previous_matches, p2m=players_to_match)
+    add_feature(match, get_mean_interval_time_prev,
+                previous_matches=previous_matches)
+    add_feature(match, get_mean_interval_time_oldest_prev,
+                previous_matches=previous_matches)
+
+    add_feature(match, get_mean_interval_time_most_recent_prev,
+                previous_matches=previous_matches)
+    add_feature(match, get_max_interval_time_most_recent_prev,
+                previous_matches=previous_matches)
+
+    add_feature(match, get_mean_delta_elo_prev,
+                previous_matches=previous_matches)
+    add_feature(match, get_mean_dif_rounds_prev,
+                previous_matches=previous_matches)
+    add_feature(match, get_mean_dif_elo_prev,
+                previous_matches=previous_matches)
+
+    add_feature(match, get_mean_matches_afk, previous_matches=previous_matches)
+
+    add_feature(match, get_num_played_togthr_prev,
+                previous_matches=previous_matches)
+    add_feature(match, get_winrate_togthr_prev,
+                previous_matches=previous_matches)
+
+    add_feature(match, get_mean_first_matches_on_day,
+                previous_matches=previous_matches)
+    add_feature(match, get_mean_matches_on_day,
+                previous_matches=previous_matches)
+    add_feature(match, get_mean_played_map_on_day,
+                previous_matches=previous_matches)
+
+    return match
