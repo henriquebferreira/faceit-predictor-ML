@@ -19,3 +19,6 @@ def set_visualization_defaults():
     plt.rcParams["legend.edgecolor"] = "white"
     plt.rcParams["axes.labelcolor"] = "white"
     plt.rcParams["axes.edgecolor"] = "white"
+    plt.rcParams["patch.linewidth"] = 1
+    plt.rcParams["patch.edgecolor"] = "gray"
+    plt.rcParams["font.family"] = "Play"
