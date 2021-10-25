@@ -7,7 +7,7 @@ This repository is a part of the FACEIT Predictor project and covers the develop
 # Introduction
 [**Counter Strike: Global Offensive (CS:GO)**](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) is a multiplayer tactical first-person shooter developed by Valve and Hidden Path Entertainment released in August 2012. The game has a lively esports scene and millions of monthly active players, continuing the legacy of the previous iterations of the franchise. Teams compete in professional leagues and tournaments, and Global Offensive is now one of the largest global esports.
 
-Competitive mode, the primary gameplay mode, pits two teams (Terrorists and Counter-Terrorists) of five players against each other in a best-of-30 round match.The Steam platform is responsible for managing the in-game matchmaking. Besides that there are other platforms that offer high standards for playing CS:GO such as ESEA, FACEIT, Esportal.
+Competitive mode, the primary gameplay mode, pits two teams (Terrorists and Counter-Terrorists) of five players against each other in a best-of-30 round match. The Steam platform is responsible for managing the in-game matchmaking. Besides that there are other platforms that offer high standards for playing CS:GO such as ESEA, FACEIT, Esportal.
 
 [**FACEIT**](https://www.faceit.com/en) is a leading independent competitive gaming platform for online multiplayer games. FACEIT allows players to easily play in tournaments and leagues for virtual and real-world prizes through automated tournament management and matchmaking technology. Esports organizers, players and communities use FACEIT to create and manage online competitions.
 
@@ -31,6 +31,7 @@ Use the links below to properly view the notebooks.
 </ol>
 
 *Notebook Preview*
+
 <img style="margin:auto; display:flex; width:600px" src="reports/notebook_preview.png">
 
 

@@ -13,4 +13,4 @@ data/interim/*
 !data/interim/batch_0.csv
 data/processed/*
 !data/processed/batch_0.csv
-reports/style.css
+!reports/style.css
