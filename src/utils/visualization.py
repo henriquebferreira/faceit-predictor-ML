@@ -25,8 +25,13 @@ def set_visualization_defaults():
 
 
 def get_default_title(feature_name):
-    core_feature_name = ' '.join(feature_name.split("_")[1:]).title()
-    return 'Winner distribution by Difference of ' + core_feature_name
+    feature_name_words = feature_name.split("_")
+    if 'dif' == feature_name_words[0]:
+        core_feature_name = ' '.join(feature_name_words[1:]).title()
+        return 'Winner distribution by Difference of ' + core_feature_name
+    else:
+        core_feature_name = ' '.join(feature_name_words).title()
+        return 'Winner distribution by ' + core_feature_name
 
 
 def comp_featured_based_on_winner(data, feature, sns_kws={}, num_bins=30, title=None):

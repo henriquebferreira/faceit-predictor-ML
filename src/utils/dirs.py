@@ -12,7 +12,3 @@ RAW_DATA_DIR = DATA_DIR / "raw"
 EXTERNAL_DATA_DIR = DATA_DIR / "external"
 INTERIM_DATA_DIR = DATA_DIR / "interim"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
-
-# model
-EXPERIMENT_MODEL_DIR = MODEL_DIR / "experiments"
-REGISTERED_MODEL_DIR = MODEL_DIR / "registered"

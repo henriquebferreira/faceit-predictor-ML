@@ -5,7 +5,7 @@ src/db/properties.ini
 __pycache__
 database_conn.py
 mongo_atlas.ipynb
-models/archived
+models/*
 data/archived
 data/raw/*
 !data/raw/batch_0.csv
@@ -13,4 +13,4 @@ data/interim/*
 !data/interim/batch_0.csv
 data/processed/*
 !data/processed/batch_0.csv
-reports/notebook_style.html
+reports/style.css
