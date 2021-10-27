@@ -2,7 +2,7 @@
 
 <img align="right" width="100" height="100" style="margin:16px;" src="logo_128x128.png">
 
-This repository is a part of the FACEIT Predictor project and covers the development of the Machine Learning model to be used in the browser extension. The model predicts the outcome of Counter Strike Global Offensive (a 5v5 First Person Shooter eSport) matches played on the FACEIT platform.
+This repository is a part of the FACEIT Predictor project and covers the development of the Machine Learning model to be used in the browser extension. The model predicts the outcome of Counter Strike Global Offensive (5v5 First Person Shooter) matches played on the FACEIT platform.
 
 # Introduction
 [**Counter Strike: Global Offensive (CS:GO)**](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) is a multiplayer tactical first-person shooter developed by Valve and Hidden Path Entertainment released in August 2012. The game has a lively esports scene and millions of monthly active players, continuing the legacy of the previous iterations of the franchise. Teams compete in professional leagues and tournaments, and Global Offensive is now one of the largest global esports.
@@ -26,7 +26,7 @@ Use the links below to properly view the notebooks.
     <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/03_feature_engineering.html">Feature Engineering</a>
   </li>
   <li>
-    <a href="http://htmlpreview.github.io/?https://raw.githubusercontent.com/henriquebferreira/faceit-predictor-ML/master/reports/04_final_eda.html">Exploratory Data Analysis (II)</a>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/04_final_eda.html">Exploratory Data Analysis (II)</a>
   </li>
 </ol>
 
