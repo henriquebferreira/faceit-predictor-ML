@@ -13,6 +13,8 @@ Competitive mode, the primary gameplay mode, pits two teams (Terrorists and Coun
 
 Nowadays FACEIT draws a huge portion of CS GO players. It provides an enhanced gaming experience mainly through reliable and well configured game servers as well as an effective protection versus cheaters. 
 
+<img style="margin:auto; display:flex" src="faceit_predictor_stages.png">
+
 # Structure of Notebooks
 Use the links below to properly view the notebooks.
 <ol>
