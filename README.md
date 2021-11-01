@@ -37,7 +37,7 @@ Use the links below to properly view the notebooks.
 
 *Notebook Preview*
 
-<img  style="margin:auto; display:flex; width:100%" src="reports/notebook_preview2.png">
+<img  style="margin:auto; display:flex; width:100%" src="reports/notebook_preview.png">
 
 
 # Technologies Used
