@@ -1,21 +1,24 @@
 # FACEIT Predictor - Machine Learning
 
-<img align="right" width="100" height="100" style="margin:16px;" src="logo_128x128.png">
+<!-- <img align="right" width="100" height="100" style="margin:16px;" src="logo_128x128.png"> -->
 
 This repository is a part of the FACEIT Predictor project and covers the development of the Machine Learning model to be used in the browser extension. The model predicts the outcome of Counter Strike Global Offensive (5v5 First Person Shooter) matches played on the FACEIT platform.
 
-# Introduction
+<img style="margin:auto; display:flex; width:100%" src="faceit_predictor_stages.png">
+
+## Disclaimer 
+FACEIT Enhancer is a third-party browser extension and not affiliated with FACEIT.
+
+<!-- # Introduction
 [**Counter Strike: Global Offensive (CS:GO)**](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) is a multiplayer tactical first-person shooter developed by Valve and Hidden Path Entertainment released in August 2012. The game has a lively esports scene and millions of monthly active players, continuing the legacy of the previous iterations of the franchise. Teams compete in professional leagues and tournaments, and Global Offensive is now one of the largest global esports.
 
-Competitive mode, the primary gameplay mode, pits two teams (Terrorists and Counter-Terrorists) of five players against each other in a best-of-30 round match. The Steam platform is responsible for managing the in-game matchmaking. Besides that there are other platforms that offer high standards for playing CS:GO such as ESEA, FACEIT, Esportal.
+Competitive mode, the primary gameplay mode, pits two teams (Terrorists and Counter-Terrorists) of five players against each other in a best-of-30 round match. The Steam platform is responsible for managing the in-game matchmaking. There are also other platforms that offer high standards for playing CS:GO such as ESEA, FACEIT, Esportal.
 
-[**FACEIT**](https://www.faceit.com/en) is a leading independent competitive gaming platform for online multiplayer games. FACEIT allows players to easily play in tournaments and leagues for virtual and real-world prizes through automated tournament management and matchmaking technology. Esports organizers, players and communities use FACEIT to create and manage online competitions.
+[**FACEIT**](https://www.faceit.com/en) is a leading independent competitive gaming platform for online multiplayer games. Esports organizers, players and communities use FACEIT to create and manage online competitions. Nowadays FACEIT draws a huge portion of CS GO players. It provides an enhanced gaming experience mainly through reliable and well configured game servers as well as an effective protection versus cheaters.  -->
 
-Nowadays FACEIT draws a huge portion of CS GO players. It provides an enhanced gaming experience mainly through reliable and well configured game servers as well as an effective protection versus cheaters. 
 
-<img style="margin:auto; display:flex" src="faceit_predictor_stages.png">
 
-# Structure of Notebooks
+# Notebooks
 Use the links below to properly view the notebooks.
 <ol>
   <li>
@@ -34,7 +37,7 @@ Use the links below to properly view the notebooks.
 
 *Notebook Preview*
 
-<img style="margin:auto; display:flex; width:600px" src="reports/notebook_preview.png">
+<img  style="margin:auto; display:flex; width:100%" src="reports/notebook_preview2.png">
 
 
 # Technologies Used
@@ -47,8 +50,13 @@ Use the links below to properly view the notebooks.
 * etc.
 </details>
 
+
 # Related Repositories 
 
 * [FACEIT Ingestor (Private)](https://github.com/henriquebferreira/faceit-ingestor)
 * [FACEIT Predictor API (Private)](https://github.com/henriquebferreira/faceit-predictor-api)
 * [FACEIT Predictor Browser Extension(Private)](https://github.com/henriquebferreira/faceit-predictor-extension)
+
+# License
+
+<a rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by-nc/3.0/88x31.png" /></a><br /><span>FACEIT Predictor by Henrique Ferreira is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) License </a>
