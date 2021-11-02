@@ -1,11 +1,7 @@
 # FACEIT Predictor - Machine Learning
 
-<img align="right" width="48" height="48" style="margin:4px;" src="logo_128x128.png">
-
 This repository is a part of the FACEIT Predictor project and covers the development of the Machine Learning model to be used in the browser extension. The model predicts the outcome of Counter Strike Global Offensive matches played on the FACEIT platform.
 
-
-## Browser Extension
 Install the chrome extension:
 
 [![Available in the Chrome Web Store](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png)](https://chrome.google.com/webstore/detail/faceit-predictor/plbhidhbocjfalcpofamaklaeecpplkd?hl=en)
@@ -14,15 +10,16 @@ Install the chrome extension:
 
 ## Overview
 
-[**Counter Strike: Global Offensive (CS:GO)**](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) is a 5v5 tactical First Person Shooter developed by Valve and Hidden Path Entertainment. Competitive mode, the primary gameplay mode, pits two teams (Terrorists and Counter-Terrorists) of five players against each other in a best-of-30 round match. The game has a lively esports scene and millions of monthly active users, playing not only on the official in-game matchmaking but also on other platforms such as FACEIT.
+[**Counter Strike: Global Offensive (CS:GO)**](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) is a 5v5 tactical First Person Shooter developed by Valve and Hidden Path Entertainment. The game has a lively esports scene and millions of monthly active users, playing not only on the official in-game matchmaking but also on external platforms.
 
 [**FACEIT**](https://www.faceit.com/en) is a leading independent competitive gaming platform for online multiplayer games. Nowadays FACEIT draws a huge portion of CS GO players, esports organizers and communities due to an enhanced gaming experience.
 
 
 The development of FACEIT Predictor encompasses five stages as described below.
 
-<img style="margin:auto; display:flex; width:100%" src="faceit_predictor_stages.png">
+<img style="margin:auto; display:flex; width:100%" src="images/faceit_predictor_stages.png">
 
+The Machine Learning/Data Science step consists of five notebooks.
 
 
 <!-- # Introduction
@@ -49,11 +46,14 @@ Use the links below to properly view the notebooks.
   <li>
     <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/04_final_eda.html">Exploratory Data Analysis (II)</a>
   </li>
+  <li>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/05_model_selection.html">Model Selection</a>
+  </li>
 </ol>
 
 *Notebook Preview*
 
-<img  style="margin:auto; display:flex; width:100%" src="reports/notebook_preview.png">
+<img  style="margin:auto; display:flex; width:100%" src="images/notebook_preview.png">
 
 
 # Technologies Used
@@ -63,7 +63,10 @@ Use the links below to properly view the notebooks.
 * Python
 * Jupyter Notebooks
 * Pandas
-* etc.
+* Matplotlib
+* Seaborn
+* Sklearn
+* Tensorflow
 </details>
 
 
