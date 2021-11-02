@@ -1,13 +1,18 @@
 # FACEIT Predictor - Machine Learning
 
+## About
 <!-- <img align="right" width="100" height="100" style="margin:16px;" src="logo_128x128.png"> -->
 
 This repository is a part of the FACEIT Predictor project and covers the development of the Machine Learning model to be used in the browser extension. The model predicts the outcome of Counter Strike Global Offensive (5v5 First Person Shooter) matches played on the FACEIT platform.
 
 <img style="margin:auto; display:flex; width:100%" src="faceit_predictor_stages.png">
 
-## Disclaimer 
-FACEIT Enhancer is a third-party browser extension and not affiliated with FACEIT.
+## Browser Extension
+Install the chrome extension:
+
+[![Available in the Chrome Web Store](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png)](https://chrome.google.com/webstore/detail/faceit-predictor/plbhidhbocjfalcpofamaklaeecpplkd?hl=en)
+
+*Disclaimer: FACEIT Enhancer is a third-party browser extension and not affiliated with FACEIT.*
 
 <!-- # Introduction
 [**Counter Strike: Global Offensive (CS:GO)**](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) is a multiplayer tactical first-person shooter developed by Valve and Hidden Path Entertainment released in August 2012. The game has a lively esports scene and millions of monthly active players, continuing the legacy of the previous iterations of the franchise. Teams compete in professional leagues and tournaments, and Global Offensive is now one of the largest global esports.
