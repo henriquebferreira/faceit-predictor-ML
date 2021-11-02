@@ -1,18 +1,29 @@
 # FACEIT Predictor - Machine Learning
 
-## About
-<!-- <img align="right" width="100" height="100" style="margin:16px;" src="logo_128x128.png"> -->
+<img align="right" width="48" height="48" style="margin:4px;" src="logo_128x128.png">
 
-This repository is a part of the FACEIT Predictor project and covers the development of the Machine Learning model to be used in the browser extension. The model predicts the outcome of Counter Strike Global Offensive (5v5 First Person Shooter) matches played on the FACEIT platform.
+This repository is a part of the FACEIT Predictor project and covers the development of the Machine Learning model to be used in the browser extension. The model predicts the outcome of Counter Strike Global Offensive matches played on the FACEIT platform.
 
-<img style="margin:auto; display:flex; width:100%" src="faceit_predictor_stages.png">
 
 ## Browser Extension
 Install the chrome extension:
 
 [![Available in the Chrome Web Store](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png)](https://chrome.google.com/webstore/detail/faceit-predictor/plbhidhbocjfalcpofamaklaeecpplkd?hl=en)
 
-*Disclaimer: FACEIT Enhancer is a third-party browser extension and not affiliated with FACEIT.*
+*Disclaimer: FACEIT Predictor is a third-party browser extension and not affiliated with FACEIT.*
+
+## Overview
+
+[**Counter Strike: Global Offensive (CS:GO)**](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) is a 5v5 tactical First Person Shooter developed by Valve and Hidden Path Entertainment. Competitive mode, the primary gameplay mode, pits two teams (Terrorists and Counter-Terrorists) of five players against each other in a best-of-30 round match. The game has a lively esports scene and millions of monthly active users, playing not only on the official in-game matchmaking but also on other platforms such as FACEIT.
+
+[**FACEIT**](https://www.faceit.com/en) is a leading independent competitive gaming platform for online multiplayer games. Nowadays FACEIT draws a huge portion of CS GO players, esports organizers and communities due to an enhanced gaming experience.
+
+
+The development of FACEIT Predictor encompasses five stages as described below.
+
+<img style="margin:auto; display:flex; width:100%" src="faceit_predictor_stages.png">
+
+
 
 <!-- # Introduction
 [**Counter Strike: Global Offensive (CS:GO)**](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) is a multiplayer tactical first-person shooter developed by Valve and Hidden Path Entertainment released in August 2012. The game has a lively esports scene and millions of monthly active players, continuing the legacy of the previous iterations of the franchise. Teams compete in professional leagues and tournaments, and Global Offensive is now one of the largest global esports.
@@ -61,6 +72,7 @@ Use the links below to properly view the notebooks.
 * [FACEIT Ingestor (Private)](https://github.com/henriquebferreira/faceit-ingestor)
 * [FACEIT Predictor API (Private)](https://github.com/henriquebferreira/faceit-predictor-api)
 * [FACEIT Predictor Browser Extension(Private)](https://github.com/henriquebferreira/faceit-predictor-extension)
+* [FACEIT Predictor Dashboard](https://github.com/henriquebferreira/faceit-predictor-dashboard)
 
 # License
 
