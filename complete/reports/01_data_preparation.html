@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Notebook
+  </title>
+  <link href="https://ghcdn.rawgit.org/henriquebferreira/faceit-predictor-ML/master/src/notebooks/style.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js">
+  </script>
+  <!-- Load mathjax -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML-full,Safe">
+  </script>
+  <!-- MathJax configuration -->
+  <script type="text/x-mathjax-config">
+   init_mathjax = function() {
+        if (window.MathJax) {
+        // MathJax loaded
+            MathJax.Hub.Config({
+                TeX: {
+                    equationNumbers: {
+                    autoNumber: "AMS",
+                    useLabelIds: true
+                    }
+                },
+                tex2jax: {
+                    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+                    displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+                    processEscapes: true,
+                    processEnvironments: true
+                },
+                displayAlign: 'center',
+                CommonHTML: {
+                    linebreaks: { 
+                    automatic: true 
+                    }
+                },
+                "HTML-CSS": {
+                    linebreaks: { 
+                    automatic: true 
+                    }
+                }
+            });
+        
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+        }
+    }
+    init_mathjax();
+  </script>
+  <!-- End of mathjax configuration -->
+ </head>
+ <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h1 style="color:#ff5500; font-family:Play; font-size:3em; margin:auto 32px;align:center">
+     Part I - Data Preparation
+    </h1>
+    <hr/>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <p>
+     This document is a part of the FACEIT Predictor Data Science Workflow.
+    </p>
+    <p>
+     In this notebook the collected data (stored in the local MongoDB database) is processed in order to create a dataset.
+    </p>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h1 id="Imports">
+     Imports
+     <a class="anchor-link" href="#Imports">
+      ¶
+     </a>
+    </h1>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [5]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+
+<span class="c1"># enable imports from parent directory</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+
+<span class="c1"># local modules</span>
+<span class="kn">from</span> <span class="nn">src.db.connections</span> <span class="kn">import</span> <span class="n">get_local_db</span>
+<span class="kn">from</span> <span class="nn">src.data.create_lifetime_stats</span> <span class="kn">import</span> <span class="n">create_all_lifetime_stats</span>
+<span class="kn">from</span> <span class="nn">src.utils.dirs</span> <span class="kn">import</span> <span class="n">INTERIM_DATA_DIR</span><span class="p">,</span> <span class="n">EXTERNAL_DATA_DIR</span><span class="p">,</span> <span class="n">RAW_DATA_DIR</span>
+<span class="kn">from</span> <span class="nn">src.data.processable_matches</span> <span class="kn">import</span> <span class="n">processable_matches_complete</span>
+<span class="kn">from</span> <span class="nn">src.data.build_raw_dataset</span> <span class="kn">import</span> <span class="n">build_raw_dataset</span>
+<span class="kn">from</span> <span class="nn">src.data.build_interim_dataset</span> <span class="kn">import</span> <span class="n">build_interim_dataset</span>
+<span class="kn">from</span> <span class="nn">src.data.performance_indicators</span> <span class="kn">import</span> <span class="n">create_performance_indicators</span>
+
+<span class="kn">from</span> <span class="nn">IPython</span> <span class="kn">import</span> <span class="n">get_ipython</span>
+
+<span class="n">ipython</span> <span class="o">=</span> <span class="n">get_ipython</span><span class="p">()</span>
+
+<span class="c1"># autoreload extension</span>
+<span class="k">if</span> <span class="s2">"autoreload"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ipython</span><span class="o">.</span><span class="n">extension_manager</span><span class="o">.</span><span class="n">loaded</span><span class="p">:</span>
+   <span class="o">%</span><span class="k">load_ext</span> autoreload
+
+<span class="c1"># autoreload python modules</span>
+<span class="o">%</span><span class="k">autoreload</span> 2
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h1 id="Database-Connection">
+     Database Connection
+     <a class="anchor-link" href="#Database-Connection">
+      ¶
+     </a>
+    </h1>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [6]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">db</span> <span class="o">=</span> <span class="n">get_local_db</span><span class="p">()</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [7]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="c1"># Connect to the collections inside the ingestor database</span>
+<span class="n">players_coll</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="s1">'player'</span><span class="p">]</span>
+<span class="n">matches_coll</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="s1">'match'</span><span class="p">]</span>
+<span class="n">lifetime_stats_coll</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="s1">'player_lifetime_stats'</span><span class="p">]</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [8]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">"Number of player documents"</span><span class="p">,</span> <span class="n">players_coll</span><span class="o">.</span><span class="n">estimated_document_count</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Number of matches documents"</span><span class="p">,</span> <span class="n">matches_coll</span><span class="o">.</span><span class="n">estimated_document_count</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Number of lifetime stats documents"</span><span class="p">,</span> <span class="n">lifetime_stats_coll</span><span class="o">.</span><span class="n">estimated_document_count</span><span class="p">())</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="jp-Cell-outputWrapper">
+    <div class="jp-OutputArea jp-Cell-outputArea">
+     <div class="jp-OutputArea-child">
+      <div class="jp-OutputPrompt jp-OutputArea-prompt">
+      </div>
+      <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+       <pre>Number of player documents 136007
+Number of matches documents 1267413
+Number of lifetime stats documents 6388405
+</pre>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h1 id="Sample-Documents">
+     Sample Documents
+     <a class="anchor-link" href="#Sample-Documents">
+      ¶
+     </a>
+    </h1>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h2 id="Player-Schema">
+     Player
+     <em>
+      Schema
+     </em>
+     <a class="anchor-link" href="#Player-Schema">
+      ¶
+     </a>
+    </h2>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <table>
+     <thead>
+      <tr>
+       <th>
+        Field Name
+       </th>
+       <th style="text-align:center">
+        Type
+       </th>
+       <th>
+        Description
+       </th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td>
+        _id
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        FACEIT account ID formatted as an UUID
+       </td>
+      </tr>
+      <tr>
+       <td>
+        activatedAt
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        Date of activation of the FACEIT account
+       </td>
+      </tr>
+      <tr>
+       <td>
+        steamCreatedAt
+       </td>
+       <td style="text-align:center">
+        datetime
+       </td>
+       <td>
+        Date of creation of the Steam account linked to the FACEIT account
+       </td>
+      </tr>
+      <tr>
+       <td>
+        updatedAt
+       </td>
+       <td style="text-align:center">
+        datetime
+       </td>
+       <td>
+        Date of the last FACEIT profile update
+       </td>
+      </tr>
+      <tr>
+       <td>
+        csgoId
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        Steam64ID of the Steam account linked to the FACEIT account
+       </td>
+      </tr>
+      <tr>
+       <td>
+        verified
+       </td>
+       <td style="text-align:center">
+        bool
+       </td>
+       <td>
+        Whether or not it is a verified FACEIT account.
+        <br/>
+        (usually reserved to high profile players including pros and streamers)
+       </td>
+      </tr>
+      <tr>
+       <td>
+        mapStats
+       </td>
+       <td style="text-align:center">
+        dict
+       </td>
+       <td>
+        Dictionary where keys are the map names and the values are a dictionary
+        <br/>
+        containing the
+        <em>
+         Lifetime Stats
+        </em>
+        of the player on the correspondent map.
+        <br/>
+        The stats for each include the following fields:
+        <ul style="margin:8px">
+         <li>
+          kills
+         </li>
+         <li>
+          deaths
+         </li>
+         <li>
+          assists
+         </li>
+         <li>
+          matches
+         </li>
+         <li>
+          wins
+         </li>
+         <li>
+          rounds
+         </li>
+         <li>
+          headshots
+         </li>
+         <li>
+          mvps
+         </li>
+         <li>
+          tripleKills
+         </li>
+         <li>
+          quadraKills
+         </li>
+         <li>
+          pentaKills
+         </li>
+        </ul>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        updatedAtIngestor
+       </td>
+       <td style="text-align:center">
+        int
+       </td>
+       <td>
+        Unix timestamp of the last time the player was processed in the FACEIT Ingestor service
+       </td>
+      </tr>
+      <tr>
+       <td>
+        matchHistory
+       </td>
+       <td style="text-align:center">
+        list
+       </td>
+       <td>
+        List of the player's match history containing both match ID and its start time.
+        <br/>
+        It is ordered from the most recent to the oldest match.
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [16]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">sample_player</span> <span class="o">=</span> <span class="n">players_coll</span><span class="o">.</span><span class="n">find_one</span><span class="p">({})</span>
+<span class="n">sample_player</span><span class="p">[</span><span class="s2">"matchHistory"</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample_player</span><span class="p">[</span><span class="s2">"matchHistory"</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">sample_player</span><span class="p">[</span><span class="s2">"mapStats"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sample_player</span><span class="p">[</span><span class="s2">"mapStats"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">())[:</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">sample_player</span><span class="p">)</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="jp-Cell-outputWrapper">
+    <div class="jp-OutputArea jp-Cell-outputArea">
+     <div class="jp-OutputArea-child">
+      <div class="jp-OutputPrompt jp-OutputArea-prompt">
+      </div>
+      <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+       <pre>{'_id': '1efb9d10-6871-479a-9d39-9cbb68546792',
+ 'activatedAt': 'Sat Sep 28 01:00:32 UTC 2013',
+ 'csgoId': '76561197998383222',
+ 'mapStats': {'de_cache': {'assists': 2029,
+                           'deaths': 8536,
+                           'headshots': 4354,
+                           'kills': 9605,
+                           'matches': 469,
+                           'mvps': 1338,
+                           'name': 'de_cache',
+                           'pentaKills': 11,
+                           'quadraKills': 130,
+                           'rounds': 12535,
+                           'tripleKills': 575,
+                           'wins': 219},
+              'de_inferno': {'assists': 2016,
+                             'deaths': 7851,
+                             'headshots': 4318,
+                             'kills': 9170,
+                             'matches': 441,
+                             'mvps': 1354,
+                             'name': 'de_inferno',
+                             'pentaKills': 13,
+                             'quadraKills': 96,
+                             'rounds': 12036,
+                             'tripleKills': 538,
+                             'wins': 214}},
+ 'matchHistory': [{'id': '1-482f9345-ae94-4465-b474-eea4afa3a099',
+                   'startTime': 1582846641},
+                  {'id': '1-da33193d-a019-45b7-9dbb-97795b73e7c6',
+                   'startTime': 1582844201},
+                  {'id': '1-62ca9e6e-9f3b-414f-8c84-d813cb64769c',
+                   'startTime': 1582781970}],
+ 'steamCreatedAt': datetime.datetime(2008, 5, 2, 18, 27, 56),
+ 'updatedAt': datetime.datetime(2020, 2, 27, 5, 39, 31, 586000),
+ 'updatedAtIngestor': 1582852222,
+ 'verified': False}
+</pre>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h2 id="Match-Schema">
+     Match
+     <em>
+      Schema
+     </em>
+     <a class="anchor-link" href="#Match-Schema">
+      ¶
+     </a>
+    </h2>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <table>
+     <thead>
+      <tr>
+       <th>
+        Field Name
+       </th>
+       <th style="text-align:center">
+        Type
+       </th>
+       <th>
+        Description
+       </th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td>
+        _id
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        FACEIT match ID
+       </td>
+      </tr>
+      <tr>
+       <td>
+        entity
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        The kind of match it belongs to: matchmaking, hub or championship (tournament).
+       </td>
+      </tr>
+      <tr>
+       <td>
+        entityName
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        The name of entity in which the match was played.
+        <br/>
+        Regarding the
+        <em>
+         matchmaking
+        </em>
+        entity there are two queues: Free and Premium.
+        <br/>
+        As for the other cases the entity name is the name of the hub or tournament.
+       </td>
+      </tr>
+      <tr>
+       <td>
+        mapPlayed
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        The CS GO map where the match was played.
+       </td>
+      </tr>
+      <tr>
+       <td>
+        parties
+       </td>
+       <td style="text-align:center">
+        dict
+       </td>
+       <td>
+        Dictionary where the keys are the parties IDs and the values are
+        <br/>
+        the list of the players' IDs in each party.
+       </td>
+      </tr>
+      <tr>
+       <td>
+        score
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        The score of match: rounds won by team A followed by team B.
+       </td>
+      </tr>
+      <tr>
+       <td>
+        startTime
+       </td>
+       <td style="text-align:center">
+        int
+       </td>
+       <td>
+        Unix timestamp of the match start time.
+       </td>
+      </tr>
+      <tr>
+       <td>
+        teamA
+       </td>
+       <td style="text-align:center">
+        list
+       </td>
+       <td>
+        List of players in team A. For each player the following fields are collected:
+        <ul style="margin:8px">
+         <li>
+          elo
+         </li>
+         <li>
+          id
+         </li>
+         <li>
+          membership
+         </li>
+         <li>
+          playerStats
+         </li>
+         <ul style="margin:8px">
+          <li>
+           kills
+          </li>
+          <li>
+           deaths
+          </li>
+          <li>
+           assists
+          </li>
+          <li>
+           headshots
+          </li>
+          <li>
+           mvps
+          </li>
+          <li>
+           tripleKills
+          </li>
+          <li>
+           quadraKills
+          </li>
+          <li>
+           pentaKills
+          </li>
+         </ul>
+        </ul>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        teamB
+       </td>
+       <td style="text-align:center">
+        list
+       </td>
+       <td>
+        Equivalent of teamA but for the players in team B.
+       </td>
+      </tr>
+      <tr>
+       <td>
+        teams
+       </td>
+       <td style="text-align:center">
+        list
+       </td>
+       <td>
+        List composed of teamA and teamB fields.
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [17]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">sample_match</span> <span class="o">=</span> <span class="n">matches_coll</span><span class="o">.</span><span class="n">find_one</span><span class="p">({})</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">sample_match</span><span class="p">)</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="jp-Cell-outputWrapper">
+    <div class="jp-OutputArea jp-Cell-outputArea">
+     <div class="jp-OutputArea-child">
+      <div class="jp-OutputPrompt jp-OutputArea-prompt">
+      </div>
+      <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+       <pre>{'_id': '1-000004ff-41ce-4326-ae87-0fe580a42b03',
+ 'entity': 'matchmaking',
+ 'entityName': 'CS:GO 5v5 PREMIUM',
+ 'mapPlayed': 'de_inferno',
+ 'parties': {'1ee0dae1-8eb2-4918-a479-0015296fcc99': ['04ac1e03-7faf-4f7b-b2fa-3133e4ddfa2e',
+                                                      '77662fe9-9ea1-4331-b960-e78f24721af2',
+                                                      'ddbaeff3-519b-49bf-9ed0-96f440caf851'],
+             '3b10e972-5f05-44cd-8bad-4e6a869a67a5': ['3b10e972-5f05-44cd-8bad-4e6a869a67a5'],
+             'c2678d2e-8a18-4f5f-8c47-bc6e99e876c2': ['c2678d2e-8a18-4f5f-8c47-bc6e99e876c2'],
+             'c6caff55-10c8-45eb-a22a-fc54cdd3dc61': ['c6caff55-10c8-45eb-a22a-fc54cdd3dc61'],
+             'ea1a9416-62f8-4b6a-b791-aac5320225f9': ['8952ebf4-f135-4799-a7b7-1d3f66fe90ce',
+                                                      'a638f08a-f223-4a08-8662-652d6494c191'],
+             'edab45a5-2dd8-48bb-a54d-bc64545d92b5': ['4e6771cd-db7e-480f-853f-112fe616005e',
+                                                      'e6d9d49c-a6d2-452b-a00e-c5c7898f50fe']},
+ 'score': '16 / 7',
+ 'startTime': 1582218212,
+ 'teamA': [{'elo': 1908,
+            'id': 'c2678d2e-8a18-4f5f-8c47-bc6e99e876c2',
+            'membership': 'csgo',
+            'playerStats': {'assists': 8,
+                            'deaths': 12,
+                            'headshots': 8,
+                            'kills': 19,
+                            'mvps': 4,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 2}},
+           {'elo': 1853,
+            'id': '4e6771cd-db7e-480f-853f-112fe616005e',
+            'membership': 'premium',
+            'playerStats': {'assists': 3,
+                            'deaths': 9,
+                            'headshots': 9,
+                            'kills': 19,
+                            'mvps': 2,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 3}},
+           {'elo': 1823,
+            'id': 'e6d9d49c-a6d2-452b-a00e-c5c7898f50fe',
+            'membership': 'csgo',
+            'playerStats': {'assists': 4,
+                            'deaths': 13,
+                            'headshots': 9,
+                            'kills': 24,
+                            'mvps': 3,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 1}},
+           {'elo': 1972,
+            'id': '8952ebf4-f135-4799-a7b7-1d3f66fe90ce',
+            'membership': 'csgo',
+            'playerStats': {'assists': 7,
+                            'deaths': 16,
+                            'headshots': 7,
+                            'kills': 14,
+                            'mvps': 1,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 0}},
+           {'elo': 1874,
+            'id': 'a638f08a-f223-4a08-8662-652d6494c191',
+            'membership': 'csgo',
+            'playerStats': {'assists': 5,
+                            'deaths': 8,
+                            'headshots': 9,
+                            'kills': 25,
+                            'mvps': 6,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 4}}],
+ 'teamB': [{'elo': 1710,
+            'id': '04ac1e03-7faf-4f7b-b2fa-3133e4ddfa2e',
+            'membership': 'csgo',
+            'playerStats': {'assists': 3,
+                            'deaths': 21,
+                            'headshots': 4,
+                            'kills': 9,
+                            'mvps': 1,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 0}},
+           {'elo': 2436,
+            'id': '77662fe9-9ea1-4331-b960-e78f24721af2',
+            'membership': 'premium',
+            'playerStats': {'assists': 1,
+                            'deaths': 22,
+                            'headshots': 4,
+                            'kills': 12,
+                            'mvps': 3,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 0}},
+           {'elo': 1899,
+            'id': 'ddbaeff3-519b-49bf-9ed0-96f440caf851',
+            'membership': 'premium',
+            'playerStats': {'assists': 2,
+                            'deaths': 20,
+                            'headshots': 8,
+                            'kills': 11,
+                            'mvps': 3,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 0}},
+           {'elo': 1845,
+            'id': 'c6caff55-10c8-45eb-a22a-fc54cdd3dc61',
+            'membership': 'premium',
+            'playerStats': None},
+           {'elo': 1815,
+            'id': '3b10e972-5f05-44cd-8bad-4e6a869a67a5',
+            'membership': 'csgo',
+            'playerStats': {'assists': 3,
+                            'deaths': 19,
+                            'headshots': 5,
+                            'kills': 11,
+                            'mvps': 0,
+                            'pentaKills': 0,
+                            'quadraKills': 0,
+                            'tripleKills': 0}}],
+ 'teams': [[{'elo': 1908,
+             'id': 'c2678d2e-8a18-4f5f-8c47-bc6e99e876c2',
+             'membership': 'csgo',
+             'playerStats': {'assists': 8,
+                             'deaths': 12,
+                             'headshots': 8,
+                             'kills': 19,
+                             'mvps': 4,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 2}},
+            {'elo': 1853,
+             'id': '4e6771cd-db7e-480f-853f-112fe616005e',
+             'membership': 'premium',
+             'playerStats': {'assists': 3,
+                             'deaths': 9,
+                             'headshots': 9,
+                             'kills': 19,
+                             'mvps': 2,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 3}},
+            {'elo': 1823,
+             'id': 'e6d9d49c-a6d2-452b-a00e-c5c7898f50fe',
+             'membership': 'csgo',
+             'playerStats': {'assists': 4,
+                             'deaths': 13,
+                             'headshots': 9,
+                             'kills': 24,
+                             'mvps': 3,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 1}},
+            {'elo': 1972,
+             'id': '8952ebf4-f135-4799-a7b7-1d3f66fe90ce',
+             'membership': 'csgo',
+             'playerStats': {'assists': 7,
+                             'deaths': 16,
+                             'headshots': 7,
+                             'kills': 14,
+                             'mvps': 1,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 0}},
+            {'elo': 1874,
+             'id': 'a638f08a-f223-4a08-8662-652d6494c191',
+             'membership': 'csgo',
+             'playerStats': {'assists': 5,
+                             'deaths': 8,
+                             'headshots': 9,
+                             'kills': 25,
+                             'mvps': 6,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 4}}],
+           [{'elo': 1710,
+             'id': '04ac1e03-7faf-4f7b-b2fa-3133e4ddfa2e',
+             'membership': 'csgo',
+             'playerStats': {'assists': 3,
+                             'deaths': 21,
+                             'headshots': 4,
+                             'kills': 9,
+                             'mvps': 1,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 0}},
+            {'elo': 2436,
+             'id': '77662fe9-9ea1-4331-b960-e78f24721af2',
+             'membership': 'premium',
+             'playerStats': {'assists': 1,
+                             'deaths': 22,
+                             'headshots': 4,
+                             'kills': 12,
+                             'mvps': 3,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 0}},
+            {'elo': 1899,
+             'id': 'ddbaeff3-519b-49bf-9ed0-96f440caf851',
+             'membership': 'premium',
+             'playerStats': {'assists': 2,
+                             'deaths': 20,
+                             'headshots': 8,
+                             'kills': 11,
+                             'mvps': 3,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 0}},
+            {'elo': 1845,
+             'id': 'c6caff55-10c8-45eb-a22a-fc54cdd3dc61',
+             'membership': 'premium',
+             'playerStats': None},
+            {'elo': 1815,
+             'id': '3b10e972-5f05-44cd-8bad-4e6a869a67a5',
+             'membership': 'csgo',
+             'playerStats': {'assists': 3,
+                             'deaths': 19,
+                             'headshots': 5,
+                             'kills': 11,
+                             'mvps': 0,
+                             'pentaKills': 0,
+                             'quadraKills': 0,
+                             'tripleKills': 0}}]]}
+</pre>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h2 id="Lifetime-Stats-Schema">
+     Lifetime Stats
+     <em>
+      Schema
+     </em>
+     <a class="anchor-link" href="#Lifetime-Stats-Schema">
+      ¶
+     </a>
+    </h2>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <table>
+     <thead>
+      <tr>
+       <th>
+        Field Name
+       </th>
+       <th style="text-align:center">
+        Type
+       </th>
+       <th>
+        Description
+       </th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td>
+        _id
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        MongoDB Document ObjectID
+       </td>
+      </tr>
+      <tr>
+       <td>
+        mapStats
+       </td>
+       <td style="text-align:center">
+        dict
+       </td>
+       <td>
+        Dictionary where keys are the map names and the values are a dictionary
+        <br/>
+        containing the
+        <em>
+         Lifetime Stats
+        </em>
+        of the player on the correspondent map.
+        <br/>
+        The data refers to the lifetime stats right before the start of the match with
+        <em>
+         _id = matchId
+        </em>
+        .
+        <br/>
+        The stats for each include the following fields:
+        <ul style="margin:8px">
+         <li>
+          kills
+         </li>
+         <li>
+          deaths
+         </li>
+         <li>
+          assists
+         </li>
+         <li>
+          matches
+         </li>
+         <li>
+          wins
+         </li>
+         <li>
+          rounds
+         </li>
+         <li>
+          headshots
+         </li>
+         <li>
+          mvps
+         </li>
+         <li>
+          tripleKills
+         </li>
+         <li>
+          quadraKills
+         </li>
+         <li>
+          pentaKills
+         </li>
+        </ul>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        matchId
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        FACEIT match ID
+       </td>
+      </tr>
+      <tr>
+       <td>
+        playerId
+       </td>
+       <td style="text-align:center">
+        str
+       </td>
+       <td>
+        FACEIT account ID formatted as an UUID
+       </td>
+      </tr>
+      <tr>
+       <td>
+        startTime
+       </td>
+       <td style="text-align:center">
+        int
+       </td>
+       <td>
+        Unix timestamp of the match start time.
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [19]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">sample_lifetime_stats</span> <span class="o">=</span> <span class="n">lifetime_stats_coll</span><span class="o">.</span><span class="n">find_one</span><span class="p">({})</span>
+<span class="n">sample_lifetime_stats</span><span class="p">[</span><span class="s2">"mapStats"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sample_lifetime_stats</span><span class="p">[</span><span class="s2">"mapStats"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">())[:</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">sample_lifetime_stats</span><span class="p">)</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="jp-Cell-outputWrapper">
+    <div class="jp-OutputArea jp-Cell-outputArea">
+     <div class="jp-OutputArea-child">
+      <div class="jp-OutputPrompt jp-OutputArea-prompt">
+      </div>
+      <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+       <pre>{'_id': ObjectId('6160f42c4100b69cfb8b95be'),
+ 'mapStats': {'de_cache': {'assists': 46,
+                           'deaths': 195,
+                           'headshots': 66,
+                           'kills': 216,
+                           'matches': 12,
+                           'mvps': 38,
+                           'name': 'de_cache',
+                           'pentaKills': 0,
+                           'quadraKills': 0,
+                           'rounds': 305,
+                           'tripleKills': 12,
+                           'wins': 10},
+              'de_inferno': {'assists': 342,
+                             'deaths': 1746,
+                             'headshots': 667,
+                             'kills': 1843,
+                             'matches': 97,
+                             'mvps': 287,
+                             'name': 'de_inferno',
+                             'pentaKills': 2,
+                             'quadraKills': 24,
+                             'rounds': 2605,
+                             'tripleKills': 106,
+                             'wins': 48}},
+ 'matchId': '1-7479cefc-04d0-43ec-b6d9-101153c9f948',
+ 'playerId': '365e61e2-aa3b-459d-883d-2b7a8783fb47',
+ 'startTime': 1583770055}
+</pre>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h1 id="Create-Lifetime-Stats">
+     Create Lifetime Stats
+     <a class="anchor-link" href="#Create-Lifetime-Stats">
+      ¶
+     </a>
+    </h1>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <p>
+     Initially only the most recent lifetime stats are stored in DB (
+     <code>
+      player.mapStats
+     </code>
+     ). In order to have consistent player lifetime stats for each match and avoid repeating the process over again, the lifetime stats are processed once and stored in DB.
+    </p>
+    <p>
+     To do so one must work backwards and continuously subtract the player stats on each match to the lifetime stats.
+    </p>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [ ]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">create_all_lifetime_stats</span><span class="p">()</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h1 id="Get-Complete-&amp;-Processable-Matches">
+     Get Complete &amp; Processable Matches
+     <a class="anchor-link" href="#Get-Complete-&amp;-Processable-Matches">
+      ¶
+     </a>
+    </h1>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <p>
+     Even though there are more than one million matches stored in DB, not all are qualified to be part of the dataset.
+    </p>
+    <p>
+     A valid processable match should have complete player data for every participant. This includes the lifetime stats before the beginning of the match as well as his
+     <em>
+      10
+     </em>
+     previous matches.
+    </p>
+    <ul>
+     <li>
+      <code>
+       match_history
+      </code>
+      : the match id is in the player's match history and the previous 10 matches are in DB
+     </li>
+     <li>
+      <code>
+       lifetime_stats
+      </code>
+      : the lifetime stats of the player regarding the match are available
+     </li>
+    </ul>
+    <p>
+     The
+     <code>
+      match_history
+     </code>
+     and
+     <code>
+      lifetime_stats
+     </code>
+     are initially set to 0 and incremented each time the conditions are met for one player.
+    </p>
+    <p>
+     Finally the match ids are filtered to include only those who have full data for all ten players.
+    </p>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [ ]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">processable_matches_complete</span><span class="p">()</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h1 id="Build-Dataset">
+     Build Dataset
+     <a class="anchor-link" href="#Build-Dataset">
+      ¶
+     </a>
+    </h1>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <p>
+     Dataset stored in batch files of size 2000. The format chosen is CSV.
+    </p>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h2 id="Raw-Dataset">
+     Raw Dataset
+     <a class="anchor-link" href="#Raw-Dataset">
+      ¶
+     </a>
+    </h2>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [ ]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">build_raw_dataset</span><span class="p">(</span><span class="n">RAW_DATA_DIR</span><span class="p">,</span> <span class="n">EXTERNAL_DATA_DIR</span><span class="p">)</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h2 id="Interim-Dataset">
+     Interim Dataset
+     <a class="anchor-link" href="#Interim-Dataset">
+      ¶
+     </a>
+    </h2>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <p>
+     Iterate over matches and for each player get the lifetime stats before the beginning of the match as well as the match ids of the 10 previous matches.
+    </p>
+    <p>
+     Store the data of every player on each element of the teamA and teamB lists.
+    </p>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [ ]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">build_interim_dataset</span><span class="p">(</span><span class="n">INTERIM_DATA_DIR</span><span class="p">,</span> <span class="n">EXTERNAL_DATA_DIR</span><span class="p">,</span> <span class="n">is_complete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <h1 id="Performance-indicators-statistics">
+     Performance indicators statistics
+     <a class="anchor-link" href="#Performance-indicators-statistics">
+      ¶
+     </a>
+    </h1>
+   </div>
+  </div>
+  <div class="jp-Cell-inputWrapper">
+   <div class="jp-InputPrompt jp-InputArea-prompt">
+   </div>
+   <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+    <p>
+     Compute the
+     <em>
+      Mean
+     </em>
+     and
+     <em>
+      Standard Deviation
+     </em>
+     for:
+    </p>
+    <ul>
+     <li>
+      Kills Per Round (KPR)
+     </li>
+     <li>
+      Survived Rounds per Round (SPR)
+     </li>
+     <li>
+      Multikills Score per Round (MKPR)
+     </li>
+     <li>
+      Assists per Round (APR)
+     </li>
+     <li>
+      MVPs per Round (MVPPR)
+     </li>
+    </ul>
+    <p>
+     The Performance Indicators will be significantly important further on when implementing some of the features. In fact, the Rating Feature measures how well a player performed compared to the mean values for all matches. Also, these values could be used to perform missing data imputation, whenever a certain feature is not computable.
+    </p>
+   </div>
+  </div>
+  <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+   <div class="jp-Cell-inputWrapper">
+    <div class="jp-InputArea jp-Cell-inputArea">
+     <div class="jp-InputPrompt jp-InputArea-prompt">
+      In [ ]:
+     </div>
+     <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+      <div class="CodeMirror cm-s-jupyter">
+       <div class="highlight hl-ipython3">
+        <pre><span></span><span class="n">create_performance_indicators</span><span class="p">()</span>
+</pre>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+ </body>
+</html>

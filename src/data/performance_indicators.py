@@ -1,7 +1,13 @@
 from bson.code import Code
 
+from src.db.connections import get_local_db
 
-def create_performance_indicators(matches_coll):
+db = get_local_db()
+
+matches_coll = db['match']
+
+
+def create_performance_indicators():
     map_function = Code("function () {"
                         "  var docId =  this._id;"
                         "  var totalRounds =  0;"

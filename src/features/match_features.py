@@ -6,25 +6,6 @@ import pandas as pd
 from src.features.utils import add_feature
 
 
-def get_elo_bin(value):
-    if value < min(elo_bins):
-        return 0
-    if value > max(elo_bins):
-        return len(elo_bins) - 2
-
-    for bin_index, bin_limit in enumerate(elo_bins[1:]):
-        if value <= bin_limit:
-            return bin_index
-
-
-def get_is_5v5_mm_queue(entity_names):
-    return [1 if e == 'CS:GO 5v5' else 0 for e in entity_names]
-
-
-def get_is_5v5_premium_queue(entity_names):
-    return [1 if e == 'CS:GO 5v5 PREMIUM' else 0 for e in entity_names]
-
-
 def get_mean_elo(data, team):
     mean_elos = []
     for team_data in data[team]:
@@ -88,15 +69,6 @@ def get_num_parties(data, team):
     return parties
 
 
-def get_num_verified_players(data, team):
-
-    verified_players = []
-    for team_data in data[team]:
-        verified = len([p['verified'] for p in team_data if p['verified']])
-        verified_players.append(verified)
-    return verified_players
-
-
 def get_winner(scores):
     winners = []
     for score in scores:
@@ -113,20 +85,12 @@ def add_match_features(data):
     add_feature(data, get_num_parties)
 
     data["match_mean_elo"] = (data["mean_elo_A"] + data["mean_elo_B"])/2
-    # binned_elos, elo_bins = pd.cut(
-    # data.match_mean_elo, bins=15, retbins=True, labels=False)
-    # data["binned_match_elo"] = binned_elos
-    # store elo bins limits in a ?file?
 
-    # map_dummies = pd.get_dummies(data.mapPlayed, drop_first=True, prefix="map_dummies")
-    # for col in map_dummies:
-    #     data[col] = map_dummies[col]
+    data['entity_dummies_hub'] = np.where(data.entity == 'hub', 1, 0)
+    data['entity_dummies_matchmaking'] = np.where(
+        data.entity == 'matchmaking', 1, 0)
 
-    entity_dummies = pd.get_dummies(
-        data.entity, drop_first=True, prefix="entity_dummies")
-    for col in entity_dummies:
-        data[col] = entity_dummies[col]
-
-    data["5v5_free_queue"] = get_is_5v5_mm_queue(data.entityName)
-    data["5v5_premium_queue"] = get_is_5v5_premium_queue(data.entityName)
+    data["5v5_free_queue"] = np.where(data.entityName == 'CS:GO 5v5', 1, 0)
+    data["5v5_premium_queue"] = np.where(
+        data.entityName == 'CS:GO 5v5 PREMIUM', 1, 0)
     data["winner"] = get_winner(data["score"])

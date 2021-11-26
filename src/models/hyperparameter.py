@@ -14,7 +14,7 @@ MODELS_PARAMS = {
     "Ridge":  {
         "alpha": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     },
-    "Linear Disc. Analysis": {
+    "Linear Disc Analysis": {
         'solver': ['svd', 'lsqr', 'eigen'],
         'shrinkage': np.arange(0, 1, 0.01)
     },
@@ -74,7 +74,7 @@ def tune_hypparams(clf, params, X_train, y_train, method='randomized', cv=CV_FOL
         hyp_search = RandomizedSearchCV(
             estimator=clf,
             param_distributions=params,
-            n_iter=50,
+            n_iter=10,
             cv=cv,
             scoring=scoring,
             refit='roc_auc',
