@@ -19,7 +19,7 @@ The development of FACEIT Predictor encompasses five stages as described below.
 
 <img style="margin:auto; display:flex; width:100%" src="images/faceit_predictor_stages.png">
 
-The Machine Learning/Data Science step consists of five notebooks.
+The Machine Learning/Data Science consists of the development of two models: **Complete** & **Simplified**. The first one takes into account the data from players' previous matches, while the second one doesn't.
 
 
 <!-- # Introduction
@@ -33,41 +33,54 @@ Competitive mode, the primary gameplay mode, pits two teams (Terrorists and Coun
 
 # Notebooks
 Use the links below to properly view the notebooks.
-<ol>
+<table border="2">
+ <tr>
+    <th>Complete</td>
+    <th>Simplified</td>
+ </tr>
+ <tr>
+    <td><ol>
   <li>
-    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/01_build_dataset.html">Build Dataset</a>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/complete/reports/01_data_preparation.html">Data Preparation</a>
   </li>
   <li>
-    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/02_initial_eda.html">Exploratory Data Analysis (I)</a>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/complete/reports/02_eda.html">Exploratory Data Analysis</a>
   </li>
   <li>
-    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/03_feature_engineering.html">Feature Engineering</a>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/complete/reports/03_feature_engineering.html">Feature Engineering</a>
   </li>
   <li>
-    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/04_final_eda.html">Exploratory Data Analysis (II)</a>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/complete/reports/04_feature_viz.html">Data (Features) Visualization</a>
   </li>
   <li>
-    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/reports/05_model_selection.html">Model Selection</a>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/complete/reports/05_modelling.html">Modelling</a>
   </li>
-</ol>
+</ol></td>
+    <td><ol>
+    <li>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/simplified/reports/01_data_preparation.html">Data Preparation</a>
+  </li>
+  <li>
+  -
+  </li>
+  <li>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/simplified/reports/03_feature_engineering.html">Feature Engineering</a>
+  </li>
+  <li>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/simplified/reports/04_feature_viz.html">Data (Features) Visualization</a>
+  </li>
+  <li>
+    <a href="https://htmlpreview.github.io/?https://github.com/henriquebferreira/faceit-predictor-ML/blob/master/simplified/reports/05_modelling.html">Modelling</a>
+  </li>
+</ol></td>
+ </tr>
+</table>
+
 
 *Notebook Preview*
 
 <img  style="margin:auto; display:flex; width:100%" src="images/notebook_preview.png">
 
-
-# Technologies Used
-<details>
-  <summary>Show/Hide</summary>
-  
-* Python
-* Jupyter Notebooks
-* Pandas
-* Matplotlib
-* Seaborn
-* Sklearn
-* Tensorflow
-</details>
 
 
 # Related Repositories 
