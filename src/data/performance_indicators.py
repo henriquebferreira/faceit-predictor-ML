@@ -5,6 +5,7 @@ from src.db.connections import get_local_db
 db = get_local_db()
 
 matches_coll = db['match']
+performance_stats_coll = db['performance_statistics']
 
 
 def create_performance_indicators():
@@ -57,3 +58,15 @@ def create_performance_indicators():
         map_function,
         reduce_function,
         "performance_statistics")
+
+
+def load_average_indicators():
+    kills = performance_stats_coll.find_one({"_id": "kills_pr"})
+    survived = performance_stats_coll.find_one({"_id": "survived_pr"})
+    multikills = performance_stats_coll.find_one(
+        {"_id": "multikills_rating_pr"})
+    assists = performance_stats_coll.find_one({"_id": "assists_pr"})
+    mvps = performance_stats_coll.find_one({"_id": "mvps_pr"})
+    stats = [kills, survived, multikills, assists, mvps]
+
+    return [s["value"]["mean"] for s in stats]

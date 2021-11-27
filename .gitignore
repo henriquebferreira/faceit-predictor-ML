@@ -13,3 +13,5 @@ __pycache__
 !*/data/processed/batch_0.feather
 complete_match_data.py
 evaluate_model_acc.py
+.mlenv
+mlruns

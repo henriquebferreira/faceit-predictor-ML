@@ -17,7 +17,7 @@ Install the chrome extension:
 
 The development of FACEIT Predictor encompasses five stages as described below.
 
-<img style="margin:auto; display:flex; width:100%" src="images/faceit_predictor_stages.png">
+<img style="margin:auto; display:flex; width:100%" src="assets/faceit_predictor_stages.png">
 
 The Machine Learning/Data Science consists of the development of two models: **Complete** & **Simplified**. The first one takes into account the data from players' previous matches, while the second one doesn't.
 
@@ -79,7 +79,7 @@ Use the links below to properly view the notebooks.
 
 *Notebook Preview*
 
-<img  style="margin:auto; display:flex; width:100%" src="images/notebook_preview.png">
+<img style="margin:auto; display:flex; width:100%" src="assets/notebook_preview.png">
 
 
 

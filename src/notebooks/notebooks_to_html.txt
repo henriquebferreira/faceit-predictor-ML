@@ -1,0 +1,2 @@
+In order to update all notebooks reports run the following command:
+>>> python src\notebooks\export.py & python src\notebooks\style.py

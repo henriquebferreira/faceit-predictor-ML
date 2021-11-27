@@ -1,5 +1,3 @@
-from statistics import mean
-
 import datetime
 import numpy as np
 from src.features.utils import add_feature

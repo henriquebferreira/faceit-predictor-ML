@@ -1,14 +1,11 @@
-import json
+from src.data.performance_indicators import load_average_indicators
+from src.db.connections import get_local_db
 
-# Load performance statistics that were previously computed
-with open('D:\\Portfolio\\faceit-predictor\\ML\\data\\external\\performance_statistics.json') as fp:
-    performance_statistics = json.load(fp)
+db = get_local_db()
 
-AVERAGE_KPR = performance_statistics["meanKPR"]
-AVERAGE_SPR = performance_statistics["meanSPR"]
-AVERAGE_RMK = performance_statistics["meanMKPR"]
-AVERAGE_APR = performance_statistics["meanAPR"]
-AVERAGE_MVPPR = performance_statistics["meanMVPPR"]
+# Load average performance statistics that were previously computed
+(AVERAGE_KPR, AVERAGE_SPR, AVERAGE_RMK,
+ AVERAGE_APR, AVERAGE_MVPPR) = load_average_indicators()
 
 
 def add_feature(data, function, **kwargs):
