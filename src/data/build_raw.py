@@ -1,13 +1,13 @@
 from tqdm import tqdm
 from src.data.constants import BATCH_SIZE
-from src.utils.dirs import EXTERNAL_DATA_DIR, EXTERNAL_DATA_DIR_S, RAW_DATA_DIR, RAW_DATA_DIR_S
-from src.db.connections import get_local_db
+from src.utils.dirs import COMPLEMENTARY_DATA_DIR, COMPLEMENTARY_DATA_DIR_S, RAW_DATA_DIR, RAW_DATA_DIR_S
+from src.db.connections import get_local_ingestor_db
 import pandas as pd
 
 from src.utils.data_handlers import load_processable_match_ids
 
 
-db = get_local_db()
+db = get_local_ingestor_db()
 
 players_coll = db['player']
 matches_coll = db['match']
@@ -34,7 +34,7 @@ def build_raw_dataset(raw_data_dir, external_data_dir):
 
 if __name__ == '__main__':
     # Build Raw Dataset Complete
-    build_raw_dataset(RAW_DATA_DIR, EXTERNAL_DATA_DIR)
+    build_raw_dataset(RAW_DATA_DIR, COMPLEMENTARY_DATA_DIR)
 
     # Build Raw Dataset Simplified
-    build_raw_dataset(RAW_DATA_DIR_S, EXTERNAL_DATA_DIR_S)
+    build_raw_dataset(RAW_DATA_DIR_S, COMPLEMENTARY_DATA_DIR_S)

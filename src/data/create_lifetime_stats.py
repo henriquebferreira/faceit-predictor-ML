@@ -1,9 +1,9 @@
 from pymongo.errors import PyMongoError
 from tqdm import tqdm
 from pymongo import DESCENDING
-from src.db.connections import get_local_db
+from src.db.connections import get_local_ingestor_db
 
-db = get_local_db()
+db = get_local_ingestor_db()
 
 players_coll = db['player']
 matches_coll = db['match']
@@ -116,25 +116,27 @@ def compute_new_lifetime_stats(player, match):
 
 
 def create_all_lifetime_stats():
+    '''
+
+    '''
     matches_cursor = matches_coll.find({}).sort("startTime", DESCENDING)
 
     for m in tqdm(matches_cursor, total=matches_coll.estimated_document_count()):
         # Get all ids of the players in the match
-        players_ids = {player['id']
-                       for team in m['teams'] for player in team}
+        pids = {p['id'] for team in m['teams'] for p in team}
 
         # Get the ids of the players whose lifetime stats
         # were already processed for this match
-        players_ids_processed = set(lifetime_stats_coll.distinct("playerId", {
+        pids_processed = set(lifetime_stats_coll.distinct("playerId", {
             "matchId": m['_id'],
-            "playerId": {"$in": list(players_ids)}}))
+            "playerId": {"$in": list(pids)}}))
 
-        players_ids_to_process = players_ids - players_ids_processed
-        if not players_ids_to_process:
-            return
+        pids_to_process = pids - pids_processed
+        if not pids_to_process:
+            continue
 
         players_to_process = players_coll.find(
-            {"_id": {"$in": list(players_ids_to_process)}})
+            {"_id": {"$in": list(pids_to_process)}})
 
         lifetime_stats = [compute_new_lifetime_stats(
             player, m) for player in players_to_process]

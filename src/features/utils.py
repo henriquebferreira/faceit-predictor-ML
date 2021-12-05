@@ -1,7 +1,7 @@
 from src.data.performance_indicators import load_average_indicators
-from src.db.connections import get_local_db
+from src.db.connections import get_local_ingestor_db
 
-db = get_local_db()
+db = get_local_ingestor_db()
 
 # Load average performance statistics that were previously computed
 (AVERAGE_KPR, AVERAGE_SPR, AVERAGE_RMK,

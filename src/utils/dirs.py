@@ -12,9 +12,9 @@ DATA_DIR = COMPLETE_DIR / "data"
 MODEL_DIR = COMPLETE_DIR / "models"
 REPORT_DIR = COMPLETE_DIR / "reports"
 
-# data
+# Complete Data directories
 RAW_DATA_DIR = DATA_DIR / "raw"
-EXTERNAL_DATA_DIR = DATA_DIR / "external"
+COMPLEMENTARY_DATA_DIR = DATA_DIR / "complementary"
 INTERIM_DATA_DIR = DATA_DIR / "interim"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 
@@ -24,8 +24,8 @@ DATA_DIR_S = SIMPLIFIED_DIR / "data"
 MODEL_DIR_S = SIMPLIFIED_DIR / "models"
 REPORT_DIR_S = SIMPLIFIED_DIR / "reports"
 
-# data
+# Simplified Data directories
 RAW_DATA_DIR_S = DATA_DIR_S / "raw"
-EXTERNAL_DATA_DIR_S = DATA_DIR_S / "external"
+COMPLEMENTARY_DATA_DIR_S = DATA_DIR_S / "complementary"
 INTERIM_DATA_DIR_S = DATA_DIR_S / "interim"
 PROCESSED_DATA_DIR_S = DATA_DIR_S / "processed"

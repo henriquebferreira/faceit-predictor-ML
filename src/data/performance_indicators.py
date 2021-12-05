@@ -1,8 +1,8 @@
 from bson.code import Code
 
-from src.db.connections import get_local_db
+from src.db.connections import get_local_ingestor_db
 
-db = get_local_db()
+db = get_local_ingestor_db()
 
 matches_coll = db['match']
 performance_stats_coll = db['performance_statistics']

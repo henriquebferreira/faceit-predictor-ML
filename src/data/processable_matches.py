@@ -1,12 +1,12 @@
 from collections import defaultdict
 from src.data.constants import NUM_PREV_MATCHES
-from src.db.connections import get_local_db
+from src.db.connections import get_local_ingestor_db
 from tqdm import tqdm
-from src.utils.dirs import EXTERNAL_DATA_DIR, EXTERNAL_DATA_DIR_S
+from src.utils.dirs import COMPLEMENTARY_DATA_DIR, COMPLEMENTARY_DATA_DIR_S
 
 from src.utils.data_handlers import store_processable_match_ids
 
-db = get_local_db()
+db = get_local_ingestor_db()
 
 players_coll = db['player']
 matches_coll = db['match']
@@ -53,7 +53,7 @@ def processable_matches_complete():
     match_ids = [m_id for m_id, rd in matches_ready.items(
     ) if rd["match_history"] == 10 and rd["lifetime_stats"] == 10]
 
-    store_processable_match_ids(match_ids, EXTERNAL_DATA_DIR)
+    store_processable_match_ids(match_ids, COMPLEMENTARY_DATA_DIR)
 
 
 def processable_matches_simple():
@@ -65,7 +65,7 @@ def processable_matches_simple():
     match_ids = [m_id for m_id, rd in matches_ready.items()
                  if rd["lifetime_stats"] == 10]
 
-    store_processable_match_ids(match_ids, EXTERNAL_DATA_DIR_S)
+    store_processable_match_ids(match_ids, COMPLEMENTARY_DATA_DIR_S)
 
 
 def main():

@@ -2,6 +2,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics import RocCurveDisplay, classification_report, roc_auc_score
+from IPython.display import display
 
 
 def print_metrics(model, X_train, y_train, X_test, y_test):

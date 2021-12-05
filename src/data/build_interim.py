@@ -1,13 +1,13 @@
 from tqdm import tqdm
 from src.data.constants import BATCH_SIZE, NUM_PREV_MATCHES
-from src.utils.dirs import EXTERNAL_DATA_DIR, EXTERNAL_DATA_DIR_S, INTERIM_DATA_DIR, INTERIM_DATA_DIR_S
-from src.db.connections import get_local_db
+from src.utils.dirs import COMPLEMENTARY_DATA_DIR, COMPLEMENTARY_DATA_DIR_S, INTERIM_DATA_DIR, INTERIM_DATA_DIR_S
+from src.db.connections import get_local_ingestor_db
 import pandas as pd
 
 from src.utils.data_handlers import load_processable_match_ids
 
 
-db = get_local_db()
+db = get_local_ingestor_db()
 
 players_coll = db['player']
 matches_coll = db['match']
@@ -88,10 +88,10 @@ def build_interim_dataset(interim_data_dir, external_data_dir, is_complete):
 if __name__ == '__main__':
     # Build Interim Dataset Complete
     build_interim_dataset(INTERIM_DATA_DIR,
-                          EXTERNAL_DATA_DIR,
+                          COMPLEMENTARY_DATA_DIR,
                           is_complete=True)
 
     # Build Interim Dataset Simplified
     build_interim_dataset(INTERIM_DATA_DIR_S,
-                          EXTERNAL_DATA_DIR_S,
+                          COMPLEMENTARY_DATA_DIR_S,
                           is_complete=False)

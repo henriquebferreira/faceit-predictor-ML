@@ -3,7 +3,8 @@ src/db/properties.ini
 .vscode
 .ipynb_checkpoints
 __pycache__
-*/models/*
+complete/models/*
+simplified/models/*
 */data/archived
 */data/raw/*
 !*/data/raw/batch_0.csv
@@ -11,7 +12,6 @@ __pycache__
 !*/data/interim/batch_0.csv
 */data/processed/*
 !*/data/processed/batch_0.feather
-complete_match_data.py
-evaluate_model_acc.py
+src/monitor
 .mlenv
 mlruns
